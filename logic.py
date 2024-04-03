@@ -73,6 +73,8 @@ def cleanText(text):
     return text
 
 def calculate_similarity_for_sentences(text1, text2):
+    if (text1 == "") and (text2 == ""):
+        return 0
     # Convert the text into TF-IDF vectors
     vectorizer = TfidfVectorizer()
     tfidf_matrix = vectorizer.fit_transform([text1, text2])
@@ -158,7 +160,7 @@ def importanceScore(ce):
     return score
 
 def askGPT(question):
-    openai.api_key = #replace key here
+    openai.api_key = (replace key here)
 
     try:
         response = openai.Completion.create(
@@ -187,7 +189,6 @@ def regUser(userID):
     global currentUserID
     currentUserID = userID
     getMongoDBData()
-
     collection = db.emailAiMetrics
     for Email in reversed(Emails):
         if (Email.real):
@@ -195,15 +196,15 @@ def regUser(userID):
             if emailID is not None:
                 record = collection.find_one({"emailId": ObjectId(emailID)}, {'cSub': 1, 'cBody': 1})
                 if record:
-                    if 'cSub' == "":
+                    if record['cSub'] == "":
                         cleaned = cleanText(Email.subject)
                         collection.update_one({"emailId": ObjectId(emailID)}, {'$set': {'cSub': cleaned}})
                         Email.cSub = cleaned
-                    if 'cBody' == "":
+                    if record['cBody'] == "":
                         cleaned = cleanText(Email.body)
                         collection.update_one({"emailId": ObjectId(emailID)}, {'$set': {'cBody': cleaned}})
                         Email.cBody = cleaned
-                    else:
+                    if (record['cSub'] != "") or (record['cBody'] != ""):
                         break
 
 def emailSummarization(emailID):
