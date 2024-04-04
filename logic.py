@@ -72,15 +72,28 @@ def cleanText(text):
     text = re.sub(r'\s+', ' ', text)
     return text
 
+def sameSender(email1, email2):
+    return (email1==email2)
+
+def sameDomain(email1, email2):
+    at_pos = email1.find('@') + 1
+    email1 = email1[at_pos:]
+    at_pos = email2.find('@') + 1
+    email2 = email2[at_pos:]
+    return (email1==email2)
+
 def calculate_similarity_for_sentences(text1, text2):
-    if (text1 == "") and (text2 == ""):
+    try:
+        if (text1 == "") or (text2 == ""):
+            return 0
+        # Convert the text into TF-IDF vectors
+        vectorizer = TfidfVectorizer()
+        tfidf_matrix = vectorizer.fit_transform([text1, text2])
+        # Compute the cosine similarity
+        similarity = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])
+        return similarity[0][0]
+    except Exception as e:
         return 0
-    # Convert the text into TF-IDF vectors
-    vectorizer = TfidfVectorizer()
-    tfidf_matrix = vectorizer.fit_transform([text1, text2])
-    # Compute the cosine similarity
-    similarity = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])
-    return similarity[0][0]
 
 def create_ics_file(summary, start_datetime, end_datetime, location, details, file_name):
     cal = Calendar()
@@ -150,17 +163,20 @@ def importanceScore(ce):
     for Email in Emails:
         if Email.real:
             email_sub = Email.csub
+            email_body = Email.cbody
         else:
             email_sub = Email.subject
+            email_body = Email.body
         ce_sub = ce.csub
-        score += calculate_similarity_for_sentences(email_sub, ce_sub) * Email.timeSpent
-
+        ce_body = ce.cbody
+        old_email_estimated_importance = 1.06536990187897 + 15.6984297986334*Email.timeSpent/len(Email.body) + 1.99765035579357*Email.timesClicked
+        similarity = 0.3 + 0.135774138397806*calculate_similarity_for_sentences(email_sub, ce_sub) + 0.174145285454568*calculate_similarity_for_sentences(email_body, ce_body) + 0.478739220936705*sameDomain(ce.senderAddress, Email.senderAddress) + 0.0859515885173441*sameSender(ce.senderAddress, Email.senderAddress)
+        score += similarity * old_email_estimated_importance
     score = score/len(Emails)
-
     return score
 
 def askGPT(question):
-    openai.api_key = (replace key here)
+    openai.api_key = (replace gpt key here)
 
     try:
         response = openai.Completion.create(
