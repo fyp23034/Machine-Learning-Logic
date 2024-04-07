@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning
 import spacy
 import warnings
 import re
+import os
 
 warnings.filterwarnings("ignore", category=MarkupResemblesLocatorWarning)
 client = MongoClient("mongodb+srv://fyp23034:hcQpJzrN@fyp23034.ckoo6oe.mongodb.net/?retryWrites=true&w=majority")
@@ -108,9 +109,12 @@ def create_ics_file(summary, start_datetime, end_datetime, location, details, fi
     event['uid'] = f"{start_datetime.strftime('%Y%m%dT%H%M%S')}@emailefficiencybooster"
     event.add('priority', 5)
     cal.add_component(event)
-    with open(file_name, 'wb') as ics_file:
+    folder_path = os.path.join(os.getcwd(), "ics")
+    os.makedirs(folder_path, exist_ok=True)
+    file_path = os.path.join(folder_path, file_name)
+    with open(file_path, 'wb') as ics_file:
         ics_file.write(cal.to_ical())
-
+        
 def getMongoDBData():
     Emails.clear()
     #add 'emails' & 'fyp.emailAiMetrics' information
@@ -290,6 +294,15 @@ def userNLR(req):
     direction = int(direction)
     addNewRecordsToFakeEmails(ObjectId(currentUserID), words, "", words, "", "", [], [], 1, direction)
 
+def parse_datetime(st_str):
+    formats = ["%Y-%m-%d-%H-%M", "%Y-%m-%d-%H%M"]
+    for fmt in formats:
+        try:
+            return datetime.strptime(st_str, fmt)
+        except ValueError:
+            continue
+    raise None
+
 #output True/False. True: .ics generated succuessfully at the same folder with name 'emailID'.ics. False: .ics generation failed
 #generateICS("65427c82d747ca686fa7382f")
 def generateICS(emailID):
@@ -308,12 +321,12 @@ def generateICS(emailID):
             "Answer my question with this format \"YYYY-MM-DD-HH-MM\"(do not use \':\') without any other words.\n Here is an email with information below.\nSubject: \"" + subject + "\"\nTime Received: \"" + str(
                 datetime.fromtimestamp(int(time_received)).strftime(
                     '%c')) + "\"\nBody: \"" + body + "\"\nSender name: \"" + sender_name + "\"\n\nGive me the event's starting time with exact date and time.")
-        start_datetime = datetime.strptime(st_str, "%Y-%m-%d-%H-%M")
+        start_datetime = parse_datetime(st_str)
         et_str = askGPT(
             "Answer my question with this format \"YYYY-MM-DD-HH-MM\"(do not use \':\') without any other words.\n Here is an email with information below.\nSubject: \"" + subject + "\"\nTime Received: \"" + str(
                 datetime.fromtimestamp(int(time_received)).strftime(
                     '%c')) + "\"\nBody: \"" + body + "\"\nSender name: \"" + sender_name + "\"\n\nGive me the event's ending time with exact date and time.")
-        end_datetime = datetime.strptime(et_str, "%Y-%m-%d-%H-%M")
+        end_datetime = parse_datetime(et_str)
         location = askGPT(
             "Here is an email with information below.\nSubject: \"" + subject + "\"\nTime Received: \"" + str(
                 datetime.fromtimestamp(int(time_received)).strftime(
