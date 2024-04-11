@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning
 import spacy
 import warnings
 import re
+from gtts import gTTS
 import os
 
 warnings.filterwarnings("ignore", category=MarkupResemblesLocatorWarning)
@@ -180,7 +181,7 @@ def importanceScore(ce):
     return score
 
 def askGPT(question):
-    openai.api_key = (replace GPT key here)
+    openai.api_key = (replace key here)
 
     try:
         response = openai.Completion.create(
@@ -377,7 +378,7 @@ def suggestReply(emailID, command):
 #dailySummary(1710647345)
 def dailySummary(fromTime):
     noEmails = True
-    gptRequest = "Please make a summary from the below emails in a third person perspective like \"You just received an email about...\". Below are the list of emails to be summarized.\n----------------------------------------------\n"
+    gptRequest = "Please make a summary from the below emails in a third person perspective like \"You just received an email about...\". You can skip contents that you think that is not important. Below are the list of emails to be summarized.\n----------------------------------------------\n"
     for Email in Emails:
         if (Email.category != None):
             if (Email.real):
@@ -385,6 +386,10 @@ def dailySummary(fromTime):
                     noEmails = False
                     gptRequest += Email.body + "\n----------------------------------------------\n"
     if noEmails:
-        return "You got no important emails today. Have a good day!"
+        response = "You got no important emails today. Have a good day!"
     else:
-        return askGPT(gptRequest)
+        response = askGPT(gptRequest)
+    audio = gTTS(text=response, lang="en", slow=False)
+    audio.save("ignore_this_file.mp3")
+    os.system("start ignore_this_file.mp3")
+    return response
