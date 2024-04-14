@@ -174,14 +174,18 @@ def importanceScore(ce):
             email_body = Email.body
         ce_sub = ce.csub
         ce_body = ce.cbody
-        old_email_estimated_importance = 1.06536990187897 + 15.6984297986334*Email.timeSpent/len(Email.body) + 1.99765035579357*Email.timesClicked
-        similarity = 0.3 + 0.135774138397806*calculate_similarity_for_sentences(email_sub, ce_sub) + 0.174145285454568*calculate_similarity_for_sentences(email_body, ce_body) + 0.478739220936705*sameDomain(ce.senderAddress, Email.senderAddress) + 0.0859515885173441*sameSender(ce.senderAddress, Email.senderAddress)
+        if len(Email.body) == 0:
+            old_email_estimated_importance = 1.06536990187897 + 1.99765035579357*Email.timesClicked
+        else:
+            old_email_estimated_importance = 1.06536990187897 + 15.6984297986334*Email.timeSpent/len(Email.body) + 1.99765035579357*Email.timesClicked
+
+        similarity = 0.081363604 + 1.188068076*calculate_similarity_for_sentences(email_sub, ce_sub) + 2.710214106*calculate_similarity_for_sentences(email_body, ce_body)
         score += similarity * old_email_estimated_importance
     score = score/len(Emails)
     return score
 
 def askGPT(question):
-    openai.api_key = (replace key here)
+    openai.api_key = (replace)
 
     try:
         response = openai.Completion.create(
