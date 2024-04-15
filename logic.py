@@ -195,7 +195,7 @@ def askGPT(question):
         )
         return str(response.choices[0].text.strip())
     except Exception as e:
-        return str(e)
+        print(str(e))
 
 #emailIDToEmailObject("65427c82d747ca686fa7382f")
 def emailIDToEmailObject(emailID):
@@ -235,7 +235,7 @@ def regUser(userID):
                         if (record['cSub'] != "") or (record['cBody'] != ""):
                             break
     except Exception as e:
-        return str(e)
+        print(str(e))
 
 
 
@@ -250,7 +250,7 @@ def emailSummarization(emailID):
         return askGPT(
             "Summarize the email blow in a third person tone and cut it short as short as possible. \nSubject: \"" + subject + "\" \nBody: \"" + body + "\"")
     except Exception as e:
-        return str(e)
+        print(str(e))
 
 def emailCategory(emailID):
     try:
@@ -299,7 +299,7 @@ def emailCategory(emailID):
         db.emailAiMetrics.update_one({"emailId": ObjectId(emailID)}, {"$set": {"category": category}})
         return category
     except Exception as e:
-        return str(e)
+        print(str(e))
 
 
 
@@ -314,7 +314,7 @@ def addToWhiteList(email):
         }
         db.whiteList.insert_one(record)
     except Exception as e:
-        return str(e)
+        print(str(e))
 
 
 #userNLR("I want emails related to job, interview, and offers to assign a higher importance rating")
@@ -328,7 +328,7 @@ def userNLR(req):
         direction = int(direction) * 10000
         addNewRecordsToFakeEmails(ObjectId(currentUserID), words, "", words, "", "", [], [], 1, direction)
     except Exception as e:
-        return str(e)
+        print(str(e))
 
 
 
@@ -399,7 +399,7 @@ def smartSearch(request):
                     relatedEmails.append(Email.emailID)
         return relatedEmails
     except Exception as e:
-        return str(e)
+        print(str(e))
 
 #suggestReply("65427c82d747ca686fa7382f", "accept the interview")
 #return a string
@@ -440,4 +440,4 @@ def dailySummary(fromTime):
         os.system("start ignore_this_file.mp3")
         return response
     except Exception as e:
-        return str(e)
+        print(str(e))
